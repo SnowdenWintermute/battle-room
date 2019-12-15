@@ -1,0 +1,35 @@
+/* Global */
+* {
+  margin: 0px;
+  padding: 0px;
+  box-sizing: border-box;
+}
+body {
+  width: 100%;
+  height: 100vh;
+}
+/* Canvas */
+#the-canvas {
+  border: 1px solid black;
+  background: #999;
+  margin: 0 auto;
+  text-align: center;
+  display: block;
+  opacity: 0;
+}
+#canvas-holder {
+  padding: 50px;
+  width: 100%;
+  height: 100%;
+  background: #333;
+}
+/* Lobby */
+#lobby {
+  position: absolute;
+  top: 50px;
+  left: calc(50% - 450px / 2);
+  width: 450px;
+  height: 700px;
+  background: #222;
+  color: #999;
+}

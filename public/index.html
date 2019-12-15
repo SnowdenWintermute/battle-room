@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link rel="stylesheet" href="./style.css" />
+    <title>Battle Room</title>
+  </head>
+  <body>
+    <div id="canvas-holder">
+      <canvas id="the-canvas"></canvas>
+    </div>
+    <div id="lobby">
+      <button id="host-game-button">Host New Game</button>
+    </div>
+  </body>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="./globals.js"></script>
+  <script src="./clientSocket.js"></script>
+  <script src="./ui.js"></script>
+  <script src="./listeners.js"></script>
+  <script src="./canvasMain.js"></script>
+</html>

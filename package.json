@@ -1,0 +1,17 @@
+{
+  "name": "battle-room",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1",
+    "helmet": "^3.21.2",
+    "socketio": "^1.0.0",
+    "uuid": "^3.3.3"
+  }
+}
