@@ -33,3 +33,50 @@ body {
   background: #222;
   color: #999;
 }
+#game-rooms {
+  width: 100%;
+  background: #335;
+}
+.game-room {
+  width: 100%;
+  height: 50px;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+}
+.room-number {
+  width: 70px;
+}
+.room-host {
+  width: 130px;
+  overflow: hidden;
+}
+.room-players {
+  width: 25px;
+}
+.room-spectators {
+  width: 115px;
+}
+.room-buttons-holder {
+  max-width: 100px;
+  display: flex;
+}
+.room-button {
+  color: #999;
+  width: 100%;
+  height: 40px;
+  padding: 5px;
+  border: none;
+}
+.room-button:hover {
+  color: aliceblue;
+}
+.dark-button {
+  background: #333;
+}
+.green-button {
+  background: #242;
+}
+.red-button {
+  background: #622;
+}

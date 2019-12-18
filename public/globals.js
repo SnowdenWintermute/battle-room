@@ -15,5 +15,5 @@ let mouseData = {
 };
 let clientPlayer = {
   name: "Orby Joe",
-  playerNumber: 0
+  playerNumber: 0,
 };
