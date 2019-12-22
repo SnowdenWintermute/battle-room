@@ -1,9 +1,10 @@
 class GameRoom {
-  constructor(roomNumber) {
+  constructor(roomNumber, hostUid, gameName) {
     this.roomNumber = roomNumber;
+    this.gameName = gameName;
     this.players = {
-      host: {},
-      challenger: {}
+      hostUid: hostUid,
+      challengerUid: null // uid
     };
     this.spectators = [];
     this.gameStatus = "inLobby"; // inLobby, countingDown, inProgress, gameOverScreen
@@ -39,3 +40,4 @@ class GameRoom {
     };
   }
 }
+module.exports = GameRoom;

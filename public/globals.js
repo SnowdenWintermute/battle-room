@@ -13,7 +13,4 @@ let mouseData = {
   xPos: 0,
   yPos: 0
 };
-let clientPlayer = {
-  name: "Orby Joe",
-  playerNumber: 0,
-};
+let clientPlayer = {};

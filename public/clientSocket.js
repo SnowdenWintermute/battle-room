@@ -1,20 +1,17 @@
 let socket = io.connect("http://localhost:8080");
 
 function hostNewGame() {
-  socket.emit("clientStartsNewGame", {
-    socketId: socket.id,
-    hostingPlayerName: clientPlayer.name
-  });
+  socket.emit("clientStartsNewGame");
 }
 
 function leaveGame() {
-  socket.emit("clientLeavesGame", clientPlayer);
+  socket.emit("clientLeavesGame");
 }
-function joinGame(room) {
-  if (clientPlayer.uid != room.hostUid) {
-    socket.emit("clientJoinsGame", { clientPlayer, room });
+function joinGame(roomNumber) {
+  if (!clientPlayer.isInGame) {
+    socket.emit("clientJoinsGame", roomNumber);
   } else {
-    console.log("client can not join a game they are already hosting");
+    console.log("You are already in a game.");
   }
 }
 
@@ -24,12 +21,9 @@ socket.on("gameListUpdate", newListOfGameRooms => {
 });
 
 socket.on("serverSendsPlayerData", data => {
-  Object.keys(data).forEach(key => {
-    clientPlayer[key] = data[key];
-  });
+  clientPlayer = data;
 });
 
-socket.on("playerHostingOrInGameStatus", status => {
-  console.log("host status updated " + status);
-  clientPlayer.isHostingOrInGame = status;
+socket.on("updatePlayerInGameStatus", status => {
+  clientPlayer.isInGame = status;
 });

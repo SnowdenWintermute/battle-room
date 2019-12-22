@@ -21,7 +21,7 @@ function draw() {
   // selection box
   if (mouseData.leftCurrentlyPressed) {
     const selectionBoxSize = getSelectionBoxSize();
-    console.log(mouseData.leftPressedAtX);
+    // console.log(mouseData.leftPressedAtX);
     context.beginPath();
     context.strokeStyle = "rgb(103,191,104)";
     context.rect(

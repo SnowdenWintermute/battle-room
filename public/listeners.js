@@ -4,7 +4,7 @@ canvas.addEventListener("mousedown", e => {
     mouseData.leftPressedAtX = e.offsetX;
     mouseData.leftPressedAtY = e.offsetY;
   }
-  console.log(e);
+  // console.log(e);
 });
 canvas.addEventListener("mouseup", e => {
   if (e.button == 0) {
@@ -16,5 +16,5 @@ canvas.addEventListener("mouseup", e => {
 canvas.addEventListener("mousemove", e => {
   mouseData.xPos = e.offsetX;
   mouseData.yPos = e.offsetY;
-  console.log(e);
+  // console.log(e);
 });
