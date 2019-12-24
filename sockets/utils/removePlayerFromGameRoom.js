@@ -1,5 +1,6 @@
 function removePlayerFromGameRoom(
   io,
+  socket,
   playerLeavingRoomUid,
   gameRooms,
   playersArray
@@ -7,7 +8,6 @@ function removePlayerFromGameRoom(
   gameRooms.forEach((room, i) => {
     // handle HOST leaving a game (remove all players and destroy the room)
     if (room.players.hostUid == playerLeavingRoomUid) {
-      console.log("client leaving a game they are hosting");
       // remove all players and spectators that joined from the game before it is destroyed
       // first remove the challenger and host from the GameRoom socketio room and update their isInGame status
       playersArray.forEach(playerInArray => {
@@ -17,13 +17,18 @@ function removePlayerFromGameRoom(
         ) {
           if (io.sockets.sockets[playerInArray.socketId]) {
             // if they disconnected their socket will not exist
-            io.sockets.sockets[playerInArray.socketId].leave(
-              `game-${room.roomNumber}`
-            );
+            // tell clients in this room to get the f out
             playerInArray.isInGame = false;
             io.sockets.sockets[playerInArray.socketId].emit(
               "updatePlayerInGameStatus",
               false
+            );
+            io.to(`game-${room.roomNumber}`).emit(
+              "currentGameRoomUpdate",
+              null
+            );
+            io.sockets.sockets[playerInArray.socketId].leave(
+              `game-${room.roomNumber}`
             );
           }
         }
@@ -32,7 +37,6 @@ function removePlayerFromGameRoom(
       gameRooms.splice(i, 1);
     } else {
       // handle player leaving a game they are not hosting
-      console.log("client leaving game they not host of");
       if (playerLeavingRoomUid == room.players.challengerUid) {
         room.players.challengerUid = null;
         playersArray.forEach(playerInArray => {
@@ -49,8 +53,11 @@ function removePlayerFromGameRoom(
         });
       }
     }
+    socket.emit("currentGameRoomUpdate", null);
+    io.to(`game-${room.roomNumber}`).emit("currentGameRoomUpdate", room);
   });
   io.sockets.emit("gameListUpdate", gameRooms);
+  io.sockets.emit("updateOfPlayersArray", playersArray);
   return gameRooms;
 }
 

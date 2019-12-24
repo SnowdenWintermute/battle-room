@@ -14,3 +14,5 @@ let mouseData = {
   yPos: 0
 };
 let clientPlayer = {};
+let clientPlayersArray = [];
+let clientGameRoomsArray = [];

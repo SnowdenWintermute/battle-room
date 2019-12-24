@@ -4,7 +4,7 @@ const uuidv4 = require("uuid/v4");
 const Player = require("./classes/Player");
 const GameRoom = require("./classes/GameRoom");
 
-const removePlayerFromGameRoom = require("./utils/removePlayerFromRoom");
+const removePlayerFromGameRoom = require("./utils/removePlayerFromGameRoom");
 const randomName = require("./utils/randomName");
 
 let gameRooms = [];
@@ -19,6 +19,7 @@ io.sockets.on("connect", socket => {
   socket.emit("serverSendsPlayerData", serverSidePlayer);
   // give client the list of games that may already exist
   io.sockets.emit("gameListUpdate", gameRooms);
+  io.sockets.emit("currentGameRoomUpdate", {});
 
   // client requests to host new game
   socket.on("clientStartsNewGame", noData => {
@@ -34,11 +35,15 @@ io.sockets.on("connect", socket => {
           );
           gameRooms.push(newGameRoom);
           // join their socket to the new game room
-          socket.join(`game-${newGameRoom.nextRoomNumber}`);
+          socket.join(`game-${newGameRoom.roomNumber}`);
           nextRoomNumber++;
           playerInArray.isInGame = true;
           socket.emit("updatePlayerInGameStatus", true);
           io.sockets.emit("gameListUpdate", gameRooms);
+          io.to(`game-${newGameRoom.roomNumber}`).emit(
+            "currentGameRoomUpdate",
+            newGameRoom
+          );
         } else {
           console.log("You can't host a game if you are already in one.");
         }
@@ -51,11 +56,7 @@ io.sockets.on("connect", socket => {
     // check if client is already hosting or playing a game
     playersArray.forEach(playerInArray => {
       if (playerInArray.socketId == socket.id) {
-        // found client player in players array
-        console.log("found client player in players array");
         if (!playerInArray.isInGame) {
-          // client player is not in game already
-          console.log("client player is not in game");
           gameRooms.forEach(room => {
             if (room.roomNumber == roomNumberToJoin) {
               // check if there is already not a challenger
@@ -63,9 +64,15 @@ io.sockets.on("connect", socket => {
                 // room is not full
                 room.players.challengerUid = playerInArray.uid;
                 socket.join(`game-${room.roomNumber}`);
+
                 playerInArray.isInGame = true;
                 socket.emit("updatePlayerInGameStatus", true);
                 io.sockets.emit("gameListUpdate", gameRooms);
+                io.sockets.emit("updateOfPlayersArray", playersArray);
+                io.to(`game-${room.roomNumber}`).emit(
+                  "currentGameRoomUpdate",
+                  room
+                );
               } else {
                 console.log("That room is full.");
               }
@@ -78,7 +85,20 @@ io.sockets.on("connect", socket => {
     });
   });
 
-  socket.on("clientLeavesGame", noData => {
+  // client requests update of players array
+  socket.on("requestUpdateOfPlayersArray", () => {
+    let playersArrayForClient = [];
+    playersArray.forEach(playerInArray => {
+      let playerForClient = {};
+      Object.keys(playerInArray).forEach(key => {
+        if (key != "socketId") playerForClient[key] = playerInArray[key];
+      });
+      playersArrayForClient.push(playerForClient);
+    });
+    socket.emit("updateOfPlayersArray", playersArrayForClient);
+  });
+
+  socket.on("clientLeavesGame", () => {
     let clientPlayerLeavingUid;
     playersArray.forEach(playerInArray => {
       if (socket.id == playerInArray.socketId) {
@@ -87,21 +107,26 @@ io.sockets.on("connect", socket => {
     });
     gameRooms = removePlayerFromGameRoom(
       io,
+      socket,
       clientPlayerLeavingUid,
       gameRooms,
       playersArray
     );
   });
+
   socket.on("disconnect", () => {
     //something is wrong with this... i think
     let clientPlayerLeavingUid;
-    playersArray.forEach(playerInArray => {
+    playersArray.forEach((playerInArray, i) => {
       if (socket.id == playerInArray.socketId) {
         clientPlayerLeavingUid = playerInArray.uid;
+        // remove them from the server players array
+        playersArray.splice(i, 1);
       }
     });
     removePlayerFromGameRoom(
       io,
+      socket,
       clientPlayerLeavingUid,
       gameRooms,
       playersArray

@@ -7,6 +7,7 @@ function hostNewGame() {
 function leaveGame() {
   socket.emit("clientLeavesGame");
 }
+
 function joinGame(roomNumber) {
   if (!clientPlayer.isInGame) {
     socket.emit("clientJoinsGame", roomNumber);
@@ -15,9 +16,20 @@ function joinGame(roomNumber) {
   }
 }
 
+function requestUpdateOfPlayersArray() {
+  socket.emit("requestUpdateOfPlayersArray");
+}
+
 socket.on("gameListUpdate", newListOfGameRooms => {
-  updateListOfGamesInDOM(newListOfGameRooms);
-  console.log(clientPlayer);
+  updateLobbyGamesList(newListOfGameRooms);
+});
+
+socket.on("currentGameRoomUpdate", currentGameRoom => {
+  updateClientCurrentGameRoom(currentGameRoom);
+});
+
+socket.on("updateOfPlayersArray", playersArrayForClient => {
+  clientPlayersArray = playersArrayForClient;
 });
 
 socket.on("serverSendsPlayerData", data => {

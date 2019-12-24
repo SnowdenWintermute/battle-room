@@ -7,9 +7,12 @@ function randomName() {
     "Aragorn",
     "Cloud",
     "Tidus",
-    "Luke"
+    "Luke",
+    "Hebrewhammer",
+    "Samuel"
   ];
-  return names[Math.round(Math.random() * names.length - 1)];
+  const r = Math.round(Math.random() * (names.length - 1));
+  return names[r];
 }
 
 module.exports = randomName;
