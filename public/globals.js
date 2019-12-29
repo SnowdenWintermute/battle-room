@@ -16,3 +16,7 @@ let mouseData = {
 let clientPlayer = {};
 let clientPlayersArray = [];
 let clientGameRoomsArray = [];
+let currentClientGameRoom = {};
+let menuOpen = true;
+let clientTick;
+let drawInterval;

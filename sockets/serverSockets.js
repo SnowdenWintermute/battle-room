@@ -6,8 +6,10 @@ const GameRoom = require("./classes/GameRoom");
 
 const removePlayerFromGameRoom = require("./utils/removePlayerFromGameRoom");
 const randomName = require("./utils/randomName");
+const startGame = require("./gameFunctions/startGame");
 
 let gameRooms = [];
+let gameRoomTicks = {};
 let nextRoomNumber = 1;
 let playersArray = [];
 
@@ -19,10 +21,10 @@ io.sockets.on("connect", socket => {
   socket.emit("serverSendsPlayerData", serverSidePlayer);
   // give client the list of games that may already exist
   io.sockets.emit("gameListUpdate", gameRooms);
-  io.sockets.emit("currentGameRoomUpdate", {});
+  socket.emit("currentGameRoomUpdate", {});
 
   // client requests to host new game
-  socket.on("clientStartsNewGame", noData => {
+  socket.on("clientHostsNewGameRoom", noData => {
     // check if client is already hosting or playing a game
     playersArray.forEach(playerInArray => {
       if (playerInArray.socketId == socket.id) {
@@ -85,6 +87,69 @@ io.sockets.on("connect", socket => {
     });
   });
 
+  // client clicks ready
+  socket.on("clientPlayerClicksReady", currentGameRoom => {
+    playersArray.forEach(playerInArray => {
+      if (playerInArray.socketId == socket.id) {
+        gameRooms.forEach(room => {
+          if (
+            room.players.hostUid == currentGameRoom.players.hostUid &&
+            currentGameRoom.players.challengerUid
+          ) {
+            if (!room.playersReady.includes(playerInArray.uid)) {
+              room.playersReady.push(playerInArray.uid);
+            } else {
+              room.playersReady.splice(
+                room.playersReady.indexOf(playerInArray.uid),
+                1
+              );
+            }
+            let countDownInterval = 0;
+
+            // if both players are ready, start the countdown / or cancel it
+            if (
+              room.playersReady.includes(room.players.hostUid) &&
+              room.playersReady.includes(room.players.challengerUid)
+            ) {
+              room.gameStatus = "countingDown";
+              countDownInterval = setInterval(() => {
+                io.to(`game-${currentGameRoom.roomNumber}`).emit(
+                  "currentGameRoomCountdown",
+                  room.countdown
+                );
+                if (room.countdown <= 0) {
+                  room.gameStatus = "inProgress";
+                  // send out the room data
+                  io.to(`game-${currentGameRoom.roomNumber}`).emit(
+                    "currentGameRoomUpdate",
+                    room
+                  );
+                  gameRoomTicks[room.roomNumber] = startGame(io, room);
+                }
+                room.countdown--;
+                if (room.gameStatus != "countingDown") {
+                  clearInterval(countDownInterval);
+                  room.countdown = 1;
+                  io.to(`game-${currentGameRoom.roomNumber}`).emit(
+                    "currentGameRoomCountdown",
+                    room.countdown
+                  );
+                }
+              }, 1000);
+            } else {
+              room.gameStatus = "inLobby";
+            }
+            // send out the room data
+            io.to(`game-${currentGameRoom.roomNumber}`).emit(
+              "currentGameRoomUpdate",
+              room
+            );
+          }
+        });
+      }
+    });
+  });
+
   // client requests update of players array
   socket.on("requestUpdateOfPlayersArray", () => {
     let playersArrayForClient = [];
@@ -110,18 +175,18 @@ io.sockets.on("connect", socket => {
       socket,
       clientPlayerLeavingUid,
       gameRooms,
-      playersArray
+      playersArray,
+      gameRoomTicks
     );
   });
 
   socket.on("disconnect", () => {
-    //something is wrong with this... i think
     let clientPlayerLeavingUid;
+    let indexOfPlayerLeaving;
     playersArray.forEach((playerInArray, i) => {
       if (socket.id == playerInArray.socketId) {
         clientPlayerLeavingUid = playerInArray.uid;
-        // remove them from the server players array
-        playersArray.splice(i, 1);
+        indexOfPlayerLeaving = i;
       }
     });
     removePlayerFromGameRoom(
@@ -129,7 +194,9 @@ io.sockets.on("connect", socket => {
       socket,
       clientPlayerLeavingUid,
       gameRooms,
-      playersArray
+      playersArray,
+      gameRoomTicks
     );
+    playersArray.splice(indexOfPlayerLeaving, 1);
   });
 });

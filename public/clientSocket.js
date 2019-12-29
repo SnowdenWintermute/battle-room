@@ -1,10 +1,11 @@
 let socket = io.connect("http://localhost:8080");
 
 function hostNewGame() {
-  socket.emit("clientStartsNewGame");
+  socket.emit("clientHostsNewGameRoom");
 }
 
 function leaveGame() {
+  clearInterval(clientTick);
   socket.emit("clientLeavesGame");
 }
 
@@ -16,6 +17,10 @@ function joinGame(roomNumber) {
   }
 }
 
+function clientPlayerClicksReady(currentGameRoom) {
+  socket.emit("clientPlayerClicksReady", currentGameRoom);
+}
+
 function requestUpdateOfPlayersArray() {
   socket.emit("requestUpdateOfPlayersArray");
 }
@@ -25,7 +30,13 @@ socket.on("gameListUpdate", newListOfGameRooms => {
 });
 
 socket.on("currentGameRoomUpdate", currentGameRoom => {
+  currentClientGameRoom = currentGameRoom;
   updateClientCurrentGameRoom(currentGameRoom);
+});
+
+socket.on("currentGameRoomCountdown", countdown => {
+  currentClientGameRoom.countdown = countdown;
+  updateClientCurrentGameRoom(currentClientGameRoom);
 });
 
 socket.on("updateOfPlayersArray", playersArrayForClient => {
@@ -38,4 +49,18 @@ socket.on("serverSendsPlayerData", data => {
 
 socket.on("updatePlayerInGameStatus", status => {
   clientPlayer.isInGame = status;
+});
+
+socket.on("serverInitsGame", () => {
+  clientTick = clientStartsTicking();
+  menuOpen = false;
+  drawInterval = setInterval(() => {
+    requestAnimationFrame(draw);
+  }, 33);
+  document.getElementById("the-canvas").setAttribute("style", "display:block");
+});
+
+socket.on("tickFromServer", gameRoom => {
+  currentClientGameRoom = gameRoom;
+  // updateGameField()
 });

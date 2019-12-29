@@ -6,6 +6,7 @@
 }
 body {
   width: 100%;
+  min-height: 800px;
   height: 100vh;
 }
 /* Canvas */
@@ -14,8 +15,7 @@ body {
   background: #999;
   margin: 0 auto;
   text-align: center;
-  display: block;
-  opacity: 0;
+  display: none;
 }
 #canvas-holder {
   padding: 50px;
@@ -79,4 +79,8 @@ body {
 }
 .red-button {
   background: #622;
+}
+.unclickable-button {
+  opacity: 0.5;
+  pointer-events: none;
 }

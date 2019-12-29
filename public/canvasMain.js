@@ -9,15 +9,26 @@ let testOrb = {
 function draw() {
   // clear it out
   context.clearRect(0, 0, canvas.width, canvas.height);
-  // my test orb
-  context.beginPath();
-  context.fillStyle = testOrb.color;
-  context.arc(testOrb.xPos, testOrb.yPos, testOrb.radius, 0, Math.PI * 2);
-  context.fill();
-  context.lineWidth = 3;
-  context.strokeStyle = "rgb(30,30,30)";
-  context.stroke();
-  if (testOrb.xPos < canvas.width) testOrb.xPos++;
+  // draw all orbs
+  currentClientGameRoom.orbs.hostOrbs.forEach(orb => {
+    context.beginPath();
+    context.fillStyle = orb.color;
+    context.arc(orb.xPos, orb.yPos, orb.radius, 0, Math.PI * 2);
+    context.fill();
+    context.lineWidth = 3;
+    context.strokeStyle = "rgb(30,70,30)";
+    context.stroke();
+  });
+  currentClientGameRoom.orbs.challengerOrbs.forEach(orb => {
+    context.beginPath();
+    context.fillStyle = orb.color;
+    context.arc(orb.xPos, orb.yPos, orb.radius, 0, Math.PI * 2);
+    context.fill();
+    context.lineWidth = 3;
+    context.strokeStyle = "rgb(30,30,70)";
+    context.stroke();
+  });
+
   // selection box
   if (mouseData.leftCurrentlyPressed) {
     const selectionBoxSize = getSelectionBoxSize();
@@ -32,6 +43,12 @@ function draw() {
     );
     context.lineWidth = 3;
     context.stroke();
+    selectOrbs(
+      mouseData.leftPressedAtX,
+      mouseData.leftPressedAtY,
+      selectionBoxSize.width,
+      selectionBoxSize.height
+    );
   }
 }
 
@@ -43,8 +60,3 @@ function getSelectionBoxSize() {
     height
   };
 }
-
-setInterval(() => {
-  // draw();
-  requestAnimationFrame(draw);
-}, 33);
