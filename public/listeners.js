@@ -12,9 +12,23 @@ canvas.addEventListener("mouseup", e => {
     mouseData.leftReleasedAtX = e.offsetX;
     mouseData.leftReleasedAtY = e.offsetY;
   }
+  const { leftPressedAtX, leftPressedAtY, xPos, yPos } = mouseData;
+  selectOrbs(leftPressedAtX, leftPressedAtY, xPos, yPos);
+  console.log(currentClientGameRoom.orbs);
 });
 canvas.addEventListener("mousemove", e => {
   mouseData.xPos = e.offsetX;
   mouseData.yPos = e.offsetY;
-  // console.log(e);
+});
+
+canvas.addEventListener("mouseleave", e => {
+  mouseData.mouseOnScreen = false;
+  if (mouseData.leftCurrentlyPressed) {
+    const { leftPressedAtX, leftPressedAtY, xPos, yPos } = mouseData;
+    selectOrbs(leftPressedAtX, leftPressedAtY, xPos, yPos);
+    console.log(currentClientGameRoom.orbs);
+  }
+});
+canvas.addEventListener("mouseenter", e => {
+  mouseData.mouseOnScreen = true;
 });

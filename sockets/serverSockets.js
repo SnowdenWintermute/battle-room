@@ -2,16 +2,18 @@ const io = require("../servers").io;
 const uuidv4 = require("uuid/v4");
 
 const Player = require("./classes/Player");
-const GameRoom = require("./classes/GameRoom");
+
+const clientHostsNewGameRoom = require("./lobbyFunctions/clientHostsNewGameRoom");
 
 const removePlayerFromGameRoom = require("./utils/removePlayerFromGameRoom");
 const randomName = require("./utils/randomName");
 const startGame = require("./gameFunctions/startGame");
 
-let gameRooms = [];
+let gameRooms = {};
 let gameRoomTicks = {};
 let nextRoomNumber = 1;
 let playersArray = [];
+let a = { b: 1 };
 
 io.sockets.on("connect", socket => {
   // create a player object for the connecting client
@@ -25,32 +27,13 @@ io.sockets.on("connect", socket => {
 
   // client requests to host new game
   socket.on("clientHostsNewGameRoom", noData => {
-    // check if client is already hosting or playing a game
-    playersArray.forEach(playerInArray => {
-      if (playerInArray.socketId == socket.id) {
-        if (!playerInArray.isInGame) {
-          // create new game room
-          let newGameRoom = new GameRoom(
-            nextRoomNumber,
-            playerInArray.uid,
-            playerInArray.name
-          );
-          gameRooms.push(newGameRoom);
-          // join their socket to the new game room
-          socket.join(`game-${newGameRoom.roomNumber}`);
-          nextRoomNumber++;
-          playerInArray.isInGame = true;
-          socket.emit("updatePlayerInGameStatus", true);
-          io.sockets.emit("gameListUpdate", gameRooms);
-          io.to(`game-${newGameRoom.roomNumber}`).emit(
-            "currentGameRoomUpdate",
-            newGameRoom
-          );
-        } else {
-          console.log("You can't host a game if you are already in one.");
-        }
-      }
-    });
+    nextRoomNumber = clientHostsNewGameRoom(
+      playersArray,
+      gameRooms,
+      nextRoomNumber,
+      io,
+      socket
+    );
   });
 
   // client requests to join a game
@@ -59,27 +42,24 @@ io.sockets.on("connect", socket => {
     playersArray.forEach(playerInArray => {
       if (playerInArray.socketId == socket.id) {
         if (!playerInArray.isInGame) {
-          gameRooms.forEach(room => {
-            if (room.roomNumber == roomNumberToJoin) {
-              // check if there is already not a challenger
-              if (!room.players.challengerUid) {
-                // room is not full
-                room.players.challengerUid = playerInArray.uid;
-                socket.join(`game-${room.roomNumber}`);
+          // check if there is already not a challenger
+          if (!gameRooms[roomNumberToJoin].players.challengerUid) {
+            // room is not full
+            gameRooms[roomNumberToJoin].players.challengerUid =
+              playerInArray.uid;
+            socket.join(`game-${gameRooms[roomNumberToJoin].roomNumber}`);
 
-                playerInArray.isInGame = true;
-                socket.emit("updatePlayerInGameStatus", true);
-                io.sockets.emit("gameListUpdate", gameRooms);
-                io.sockets.emit("updateOfPlayersArray", playersArray);
-                io.to(`game-${room.roomNumber}`).emit(
-                  "currentGameRoomUpdate",
-                  room
-                );
-              } else {
-                console.log("That room is full.");
-              }
-            }
-          });
+            playerInArray.isInGame = true;
+            socket.emit("updatePlayerInGameStatus", true);
+            io.sockets.emit("gameListUpdate", gameRooms);
+            io.sockets.emit("updateOfPlayersArray", playersArray);
+            io.to(`game-${gameRooms[roomNumberToJoin].roomNumber}`).emit(
+              "currentGameRoomUpdate",
+              gameRooms[roomNumberToJoin]
+            );
+          } else {
+            console.log("That room is full.");
+          }
         } else {
           console.log("You are already in a game.");
         }
@@ -89,63 +69,70 @@ io.sockets.on("connect", socket => {
 
   // client clicks ready
   socket.on("clientPlayerClicksReady", currentGameRoom => {
+    const roomNumber = currentGameRoom.roomNumber;
     playersArray.forEach(playerInArray => {
       if (playerInArray.socketId == socket.id) {
-        gameRooms.forEach(room => {
-          if (
-            room.players.hostUid == currentGameRoom.players.hostUid &&
-            currentGameRoom.players.challengerUid
-          ) {
-            if (!room.playersReady.includes(playerInArray.uid)) {
-              room.playersReady.push(playerInArray.uid);
-            } else {
-              room.playersReady.splice(
-                room.playersReady.indexOf(playerInArray.uid),
-                1
-              );
-            }
-            let countDownInterval = 0;
-
-            // if both players are ready, start the countdown / or cancel it
-            if (
-              room.playersReady.includes(room.players.hostUid) &&
-              room.playersReady.includes(room.players.challengerUid)
-            ) {
-              room.gameStatus = "countingDown";
-              countDownInterval = setInterval(() => {
-                io.to(`game-${currentGameRoom.roomNumber}`).emit(
-                  "currentGameRoomCountdown",
-                  room.countdown
-                );
-                if (room.countdown <= 0) {
-                  room.gameStatus = "inProgress";
-                  // send out the room data
-                  io.to(`game-${currentGameRoom.roomNumber}`).emit(
-                    "currentGameRoomUpdate",
-                    room
-                  );
-                  gameRoomTicks[room.roomNumber] = startGame(io, room);
-                }
-                room.countdown--;
-                if (room.gameStatus != "countingDown") {
-                  clearInterval(countDownInterval);
-                  room.countdown = 1;
-                  io.to(`game-${currentGameRoom.roomNumber}`).emit(
-                    "currentGameRoomCountdown",
-                    room.countdown
-                  );
-                }
-              }, 1000);
-            } else {
-              room.gameStatus = "inLobby";
-            }
-            // send out the room data
-            io.to(`game-${currentGameRoom.roomNumber}`).emit(
-              "currentGameRoomUpdate",
-              room
+        if (
+          gameRooms[roomNumber].players.hostUid ==
+            currentGameRoom.players.hostUid &&
+          currentGameRoom.players.challengerUid
+        ) {
+          if (!gameRooms[roomNumber].playersReady.includes(playerInArray.uid)) {
+            gameRooms[roomNumber].playersReady.push(playerInArray.uid);
+          } else {
+            gameRooms[roomNumber].playersReady.splice(
+              gameRooms[roomNumber].playersReady.indexOf(playerInArray.uid),
+              1
             );
           }
-        });
+          let countDownInterval = 0;
+
+          // if both players are ready, start the countdown / or cancel it
+          if (
+            gameRooms[roomNumber].playersReady.includes(
+              gameRooms[roomNumber].players.hostUid
+            ) &&
+            gameRooms[roomNumber].playersReady.includes(
+              gameRooms[roomNumber].players.challengerUid
+            )
+          ) {
+            gameRooms[roomNumber].gameStatus = "countingDown";
+            countDownInterval = setInterval(() => {
+              io.to(`game-${currentGameRoom.roomNumber}`).emit(
+                "currentGameRoomCountdown",
+                gameRooms[roomNumber].countdown
+              );
+              if (gameRooms[roomNumber].countdown <= 0) {
+                gameRooms[roomNumber].gameStatus = "inProgress";
+                // send out the room data
+                io.to(`game-${currentGameRoom.roomNumber}`).emit(
+                  "currentGameRoomUpdate",
+                  gameRooms[roomNumber]
+                );
+                gameRoomTicks[gameRooms[roomNumber].roomNumber] = startGame(
+                  io,
+                  gameRooms[roomNumber]
+                );
+              }
+              gameRooms[roomNumber].countdown--;
+              if (gameRooms[roomNumber].gameStatus != "countingDown") {
+                clearInterval(countDownInterval);
+                gameRooms[roomNumber].countdown = 1;
+                io.to(`game-${currentGameRoom.roomNumber}`).emit(
+                  "currentGameRoomCountdown",
+                  gameRooms[roomNumber].countdown
+                );
+              }
+            }, 1000);
+          } else {
+            gameRooms[roomNumber].gameStatus = "inLobby";
+          }
+          // send out the room data
+          io.to(`game-${currentGameRoom.roomNumber}`).emit(
+            "currentGameRoomUpdate",
+            gameRooms[roomNumber]
+          );
+        }
       }
     });
   });
@@ -198,5 +185,21 @@ io.sockets.on("connect", socket => {
       gameRoomTicks
     );
     playersArray.splice(indexOfPlayerLeaving, 1);
+  });
+
+  // game
+  socket.on("clientSendsOrbSelections", data => {
+    // roomNumber, ownerOfOrbs, orbsToBeUpdated
+    console.log(data);
+    const { roomNumber, ownerOfOrbs, orbsToBeUpdated } = data;
+    if (gameRooms[roomNumber]) {
+      gameRooms[roomNumber].orbs[ownerOfOrbs].forEach(orb => {
+        orbsToBeUpdated.forEach(selectedOrb => {
+          if (selectedOrb.num === orb.num) {
+            orb.isSelected = selectedOrb.isSelected;
+          }
+        });
+      });
+    }
   });
 });

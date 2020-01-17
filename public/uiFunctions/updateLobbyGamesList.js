@@ -1,27 +1,33 @@
 function updateLobbyGamesList(gameRooms) {
-  clientGameRoomsArray = gameRooms;
+  clientGameRooms = gameRooms;
   let gameRoomsUi = document.getElementById("game-rooms");
   if (gameRoomsUi) gameRoomsUi.innerHTML = "";
 
   if (!clientPlayer.isInGame) {
-    gameRooms.forEach(room => {
+    for (let room in clientGameRooms) {
       // make the buttons
       let joinButton = "",
         spectateButton = "";
-      if (!clientPlayer.isInGame && !room.players.challengerUid) {
-        joinButton = `<Button id="join-room-${room.roomNumber}" class='room-button dark-button'>JOIN</Button>`;
+      if (
+        !clientPlayer.isInGame &&
+        !clientGameRooms[room].players.challengerUid
+      ) {
+        joinButton = `<Button id="join-room-${clientGameRooms[room].roomNumber}" class='room-button dark-button'>JOIN</Button>`;
       }
       if (!clientPlayer.isInGame) {
-        spectateButton = `<Button id="spectate-room-${room.roomNumber}" class='room-button green-button'>WATCH</Button>`;
+        spectateButton = `<Button id="spectate-room-${clientGameRooms[room].roomNumber}" class='room-button green-button'>WATCH</Button>`;
       }
 
       let numberOfPlayersInRoom;
-      if (room.players.challengerUid) numberOfPlayersInRoom = 2;
+      if (clientGameRooms[room].players.challengerUid)
+        numberOfPlayersInRoom = 2;
       else numberOfPlayersInRoom = 1;
       const newRoomHTML = `
         <tr class="game-room">
-          <td class="room-number">ROOM ${room.roomNumber}</td>
-          <td class="room-host">${room.gameName.toUpperCase()}</td>
+          <td class="room-number">ROOM ${clientGameRooms[room].roomNumber}</td>
+          <td class="room-host">${clientGameRooms[
+            room
+          ].gameName.toUpperCase()}</td>
           <td class="room-players">${numberOfPlayersInRoom}/2</td>
           <td class="room-spectators">SPECTATORS 0</td>
           <td class="room-buttons-holder">
@@ -30,23 +36,27 @@ function updateLobbyGamesList(gameRooms) {
           </td>
         </tr>`;
       document.getElementById("game-rooms").innerHTML += newRoomHTML;
-    });
-    gameRooms.forEach(room => {
-      let joinButton = document.getElementById(`join-room-${room.roomNumber}`);
+    }
+    for (let room in gameRooms) {
+      let joinButton = document.getElementById(
+        `join-room-${clientGameRooms[room].roomNumber}`
+      );
       let spectateButton = document.getElementById(
-        `spectate-room-${room.roomNumber}`
+        `spectate-room-${clientGameRooms[room].roomNumber}`
       );
       // add listeners to the buttons
       if (joinButton) {
         joinButton.addEventListener("click", e => {
-          joinGame(room.roomNumber);
+          joinGame(clientGameRooms[room].roomNumber);
         });
       }
       if (spectateButton) {
         spectateButton.addEventListener("click", e => {
-          console.log("clicked to spectate room " + room.roomNumber);
+          console.log(
+            "clicked to spectate room " + clientGameRooms[room].roomNumber
+          );
         });
       }
-    });
+    }
   }
 }

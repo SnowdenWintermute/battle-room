@@ -1,11 +1,3 @@
-let testOrb = {
-  xPos: 30,
-  yPos: 50,
-  radius: 10,
-  color: "rgb(10,10,10)",
-  isSelected: false
-};
-
 function draw() {
   // clear it out
   context.clearRect(0, 0, canvas.width, canvas.height);
@@ -16,8 +8,10 @@ function draw() {
     context.arc(orb.xPos, orb.yPos, orb.radius, 0, Math.PI * 2);
     context.fill();
     context.lineWidth = 3;
-    context.strokeStyle = "rgb(30,70,30)";
-    context.stroke();
+    if (orb.isSelected) {
+      context.strokeStyle = "rgb(30,200,30)";
+      context.stroke();
+    }
   });
   currentClientGameRoom.orbs.challengerOrbs.forEach(orb => {
     context.beginPath();
@@ -25,12 +19,17 @@ function draw() {
     context.arc(orb.xPos, orb.yPos, orb.radius, 0, Math.PI * 2);
     context.fill();
     context.lineWidth = 3;
-    context.strokeStyle = "rgb(30,30,70)";
-    context.stroke();
+    if (orb.isSelected) {
+      context.strokeStyle = "rgb(30,30,200)";
+      context.stroke();
+    }
   });
 
   // selection box
   if (mouseData.leftCurrentlyPressed) {
+    if (!mouseData.mouseOnScreen) {
+      mouseData.leftCurrentlyPressed = false;
+    }
     const selectionBoxSize = getSelectionBoxSize();
     // console.log(mouseData.leftPressedAtX);
     context.beginPath();
@@ -43,12 +42,6 @@ function draw() {
     );
     context.lineWidth = 3;
     context.stroke();
-    selectOrbs(
-      mouseData.leftPressedAtX,
-      mouseData.leftPressedAtY,
-      selectionBoxSize.width,
-      selectionBoxSize.height
-    );
   }
 }
 

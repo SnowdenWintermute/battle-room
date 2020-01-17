@@ -5,18 +5,20 @@ let context = canvas.getContext("2d");
 canvas.width = 450;
 canvas.height = 700;
 let mouseData = {
-  leftPressedAtX: 0,
-  leftPressedAtY: 0,
-  leftReleasedAtX: 0,
-  leftReleasedAtY: 0,
+  leftPressedAtX: null,
+  leftPressedAtY: null,
+  leftReleasedAtX: null,
+  leftReleasedAtY: null,
   leftCurrentlyPressed: false,
   xPos: 0,
-  yPos: 0
+  yPos: 0,
+  mouseOnScreen: null
 };
 let clientPlayer = {};
 let clientPlayersArray = [];
-let clientGameRoomsArray = [];
+let clientGameRooms = {};
 let currentClientGameRoom = {};
+let selectedOrbs = [];
 let menuOpen = true;
 let clientTick;
 let drawInterval;

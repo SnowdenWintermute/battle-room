@@ -45,6 +45,7 @@ socket.on("updateOfPlayersArray", playersArrayForClient => {
 
 socket.on("serverSendsPlayerData", data => {
   clientPlayer = data;
+  console.log(data);
 });
 
 socket.on("updatePlayerInGameStatus", status => {

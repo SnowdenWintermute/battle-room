@@ -9,7 +9,7 @@ function startGame(io, gameRoom) {
       new Orb(startingX, 50, 5, gameRoom.players.hostUid, i + 1)
     );
     gameRoom.orbs.challengerOrbs.push(
-      new Orb(startingX, 650, 5, gameRoom.players.hostUid, i + 1)
+      new Orb(startingX, 650, 5, gameRoom.players.challengerUid, i + 1)
     );
   }
   let serverGameTick = setInterval(() => {
