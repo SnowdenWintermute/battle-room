@@ -2,9 +2,13 @@ class Orb {
   constructor(xPos, yPos, radius, owner, num) {
     this.xPos = xPos;
     this.yPos = yPos;
-    this.destination = {
+    this.heading = {
       xPos: this.xPos,
       yPos: this.yPos
+    };
+    this.velocity = {
+      x: 0,
+      y: 0
     };
     this.radius = radius;
     this.owner = owner;

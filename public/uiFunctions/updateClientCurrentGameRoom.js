@@ -2,7 +2,6 @@ function updateClientCurrentGameRoom(currentGameRoom) {
   let currentGameUi = document.getElementById("current-game");
   let lobby = document.getElementById("lobby");
   let htmlCanvas = document.getElementById("the-canvas");
-  console.log(menuOpen);
   if (!menuOpen) {
     lobby.setAttribute("style", "display:none");
     htmlCanvas.setAttribute("style", "display: block");
@@ -34,8 +33,6 @@ function updateClientCurrentGameRoom(currentGameRoom) {
           currentRoomHostName = currentGameRoom.gameName;
           currentRoomChallengerName = clientPlayer.name;
         } else if (currentGameRoom.players.challengerUid) {
-          console.log(currentGameRoom.players.challengerUid);
-          console.log(clientPlayersObject);
           currentRoomChallengerName =
             clientPlayersObject[currentGameRoom.players.challengerUid].name;
         }

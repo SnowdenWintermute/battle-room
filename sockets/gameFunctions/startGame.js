@@ -1,5 +1,7 @@
 const Orb = require("../classes/Orb");
 
+const moveOrbs = require("./moveOrbs");
+
 function startGame(io, gameRoom) {
   console.log(gameRoom.roomNumber + "started");
   io.to(`game-${gameRoom.roomNumber}`).emit("serverInitsGame");
@@ -13,7 +15,8 @@ function startGame(io, gameRoom) {
     );
   }
   let serverGameTick = setInterval(() => {
-    // updateOrbPositions()
+    moveOrbs(gameRoom);
+    console.log(gameRoom.orbs.hostOrbs[0]);
     io.to(`game-${gameRoom.roomNumber}`).emit("tickFromServer", gameRoom);
   }, 33);
   return serverGameTick;

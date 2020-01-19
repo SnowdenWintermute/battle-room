@@ -30,7 +30,6 @@ socket.on("gameListUpdate", newListOfGameRooms => {
 });
 
 socket.on("currentGameRoomUpdate", currentGameRoom => {
-  console.log(currentGameRoom);
   currentClientGameRoom = currentGameRoom;
   if (!currentGameRoom) menuOpen = true;
   if (drawInterval) clearInterval(drawInterval);
@@ -43,17 +42,14 @@ socket.on("currentGameRoomCountdown", countdown => {
 });
 
 socket.on("updateOfPlayersObject", playersObjectForClient => {
-  console.log(playersObjectForClient);
   clientPlayersObject = playersObjectForClient;
 });
 
 socket.on("serverSendsPlayerData", data => {
   clientPlayer = data;
-  console.log(data);
 });
 
 socket.on("updatePlayerInGameStatus", status => {
-  console.log("inGame status updated: " + status);
   clientPlayer.isInGame = status;
 });
 

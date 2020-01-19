@@ -10,6 +10,8 @@ let mouseData = {
   leftReleasedAtX: null,
   leftReleasedAtY: null,
   leftCurrentlyPressed: false,
+  rightReleasedAtX: null,
+  rightReleasedAtY: null,
   xPos: 0,
   yPos: 0,
   mouseOnScreen: null
@@ -18,7 +20,6 @@ let clientPlayer = {};
 let clientPlayersObject = {};
 let clientGameRooms = {};
 let currentClientGameRoom = {};
-let selectedOrbs = [];
 let menuOpen = true;
 let clientTick;
 let drawInterval;

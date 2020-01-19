@@ -34,7 +34,6 @@ function removePlayerFromGameRoom(
         // if they disconnected their socket will not exist
         // tell clients in this room to get the f out
         connectedPlayers[challengerSocketId].isInGame = false;
-        console.log("challengerSocket: " + challengerSocketId);
         io.sockets.sockets[challengerSocketId].emit(
           "updatePlayerInGameStatus",
           false

@@ -9,6 +9,7 @@ class GameRoom {
     this.spectators = [];
     this.gameStatus = "inLobby"; // inLobby, countingDown, inProgress, gameOverScreen
     this.countdown = defaultCountdownNumber;
+    this.speed = 2;
     this.orbs = {
       hostOrbs: [],
       challengerOrbs: []
