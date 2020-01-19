@@ -21,8 +21,8 @@ function clientPlayerClicksReady(currentGameRoom) {
   socket.emit("clientPlayerClicksReady", currentGameRoom);
 }
 
-function requestUpdateOfPlayersArray() {
-  socket.emit("requestUpdateOfPlayersArray");
+function requestUpdateOfPlayersObject() {
+  socket.emit("requestUpdateOfPlayersObject");
 }
 
 socket.on("gameListUpdate", newListOfGameRooms => {
@@ -30,7 +30,10 @@ socket.on("gameListUpdate", newListOfGameRooms => {
 });
 
 socket.on("currentGameRoomUpdate", currentGameRoom => {
+  console.log(currentGameRoom);
   currentClientGameRoom = currentGameRoom;
+  if (!currentGameRoom) menuOpen = true;
+  if (drawInterval) clearInterval(drawInterval);
   updateClientCurrentGameRoom(currentGameRoom);
 });
 
@@ -39,8 +42,9 @@ socket.on("currentGameRoomCountdown", countdown => {
   updateClientCurrentGameRoom(currentClientGameRoom);
 });
 
-socket.on("updateOfPlayersArray", playersArrayForClient => {
-  clientPlayersArray = playersArrayForClient;
+socket.on("updateOfPlayersObject", playersObjectForClient => {
+  console.log(playersObjectForClient);
+  clientPlayersObject = playersObjectForClient;
 });
 
 socket.on("serverSendsPlayerData", data => {
@@ -49,10 +53,13 @@ socket.on("serverSendsPlayerData", data => {
 });
 
 socket.on("updatePlayerInGameStatus", status => {
+  console.log("inGame status updated: " + status);
   clientPlayer.isInGame = status;
 });
 
 socket.on("serverInitsGame", () => {
+  let htmlCanvas = document.getElementById("the-canvas");
+  htmlCanvas.setAttribute("style", "display: block");
   clientTick = clientStartsTicking();
   menuOpen = false;
   drawInterval = setInterval(() => {

@@ -10,16 +10,18 @@ const randomName = require("./utils/randomName");
 const startGame = require("./gameFunctions/startGame");
 
 let gameRooms = {};
+let gameRoomCountdownIntervals = {};
 let gameRoomTicks = {};
 let nextRoomNumber = 1;
-let playersArray = [];
-let a = { b: 1 };
+let connectedPlayers = {};
+
+const defaultCountdownNumber = 1;
 
 io.sockets.on("connect", socket => {
   // create a player object for the connecting client
   console.log(socket.id + " connected to the main namespace");
   let serverSidePlayer = new Player(socket.id, randomName());
-  playersArray.push(serverSidePlayer);
+  connectedPlayers[socket.id] = serverSidePlayer;
   socket.emit("serverSendsPlayerData", serverSidePlayer);
   // give client the list of games that may already exist
   io.sockets.emit("gameListUpdate", gameRooms);
@@ -28,163 +30,177 @@ io.sockets.on("connect", socket => {
   // client requests to host new game
   socket.on("clientHostsNewGameRoom", noData => {
     nextRoomNumber = clientHostsNewGameRoom(
-      playersArray,
+      connectedPlayers,
+      serverSidePlayer,
       gameRooms,
       nextRoomNumber,
       io,
-      socket
+      socket,
+      defaultCountdownNumber
     );
   });
 
   // client requests to join a game
   socket.on("clientJoinsGame", roomNumberToJoin => {
     // check if client is already hosting or playing a game
-    playersArray.forEach(playerInArray => {
-      if (playerInArray.socketId == socket.id) {
-        if (!playerInArray.isInGame) {
-          // check if there is already not a challenger
-          if (!gameRooms[roomNumberToJoin].players.challengerUid) {
-            // room is not full
-            gameRooms[roomNumberToJoin].players.challengerUid =
-              playerInArray.uid;
-            socket.join(`game-${gameRooms[roomNumberToJoin].roomNumber}`);
-
-            playerInArray.isInGame = true;
-            socket.emit("updatePlayerInGameStatus", true);
-            io.sockets.emit("gameListUpdate", gameRooms);
-            io.sockets.emit("updateOfPlayersArray", playersArray);
-            io.to(`game-${gameRooms[roomNumberToJoin].roomNumber}`).emit(
-              "currentGameRoomUpdate",
-              gameRooms[roomNumberToJoin]
-            );
-          } else {
-            console.log("That room is full.");
-          }
-        } else {
-          console.log("You are already in a game.");
+    if (!connectedPlayers[socket.id].isInGame) {
+      // check if there is already not a challenger
+      if (!gameRooms[roomNumberToJoin].players.challengerUid) {
+        // room is not full
+        gameRooms[roomNumberToJoin].players.challengerUid =
+          connectedPlayers[socket.id].uid;
+        socket.join(`game-${gameRooms[roomNumberToJoin].roomNumber}`);
+        connectedPlayers[socket.id].isInGame = true;
+        socket.emit("updatePlayerInGameStatus", true);
+        io.sockets.emit("gameListUpdate", gameRooms);
+        // create a playersObject for client with Uid instead of socket.id
+        let playersObjectForClient = {};
+        for (let connectedPlayer in connectedPlayers) {
+          let playerForClient = {};
+          Object.keys(connectedPlayers[connectedPlayer]).forEach(key => {
+            if (key != "socketId")
+              playerForClient[key] = connectedPlayers[connectedPlayer][key];
+          });
+          console.log(playerForClient);
+          playersObjectForClient[
+            connectedPlayers[connectedPlayer].uid
+          ] = playerForClient;
         }
+        io.sockets.emit("updateOfPlayersObject", playersObjectForClient);
+
+        io.to(`game-${gameRooms[roomNumberToJoin].roomNumber}`).emit(
+          "currentGameRoomUpdate",
+          gameRooms[roomNumberToJoin]
+        );
+      } else {
+        console.log("That room is full.");
       }
-    });
+    } else {
+      console.log("You are already in a game.");
+    }
   });
 
   // client clicks ready
   socket.on("clientPlayerClicksReady", currentGameRoom => {
     const roomNumber = currentGameRoom.roomNumber;
-    playersArray.forEach(playerInArray => {
-      if (playerInArray.socketId == socket.id) {
+    // check if this room still exists or it will crash server
+    if (gameRooms[roomNumber]) {
+      if (
+        gameRooms[roomNumber].players.hostUid ==
+          currentGameRoom.players.hostUid &&
+        currentGameRoom.players.challengerUid
+      ) {
         if (
-          gameRooms[roomNumber].players.hostUid ==
-            currentGameRoom.players.hostUid &&
-          currentGameRoom.players.challengerUid
+          !gameRooms[roomNumber].playersReady.includes(
+            connectedPlayers[socket.id].uid
+          )
         ) {
-          if (!gameRooms[roomNumber].playersReady.includes(playerInArray.uid)) {
-            gameRooms[roomNumber].playersReady.push(playerInArray.uid);
-          } else {
-            gameRooms[roomNumber].playersReady.splice(
-              gameRooms[roomNumber].playersReady.indexOf(playerInArray.uid),
-              1
-            );
-          }
-          let countDownInterval = 0;
+          gameRooms[roomNumber].playersReady.push(
+            connectedPlayers[socket.id].uid
+          );
+        } else {
+          gameRooms[roomNumber].playersReady.splice(
+            gameRooms[roomNumber].playersReady.indexOf(
+              connectedPlayers[socket.id].uid
+            ),
+            1
+          );
+        }
 
-          // if both players are ready, start the countdown / or cancel it
-          if (
-            gameRooms[roomNumber].playersReady.includes(
-              gameRooms[roomNumber].players.hostUid
-            ) &&
-            gameRooms[roomNumber].playersReady.includes(
-              gameRooms[roomNumber].players.challengerUid
-            )
-          ) {
-            gameRooms[roomNumber].gameStatus = "countingDown";
-            countDownInterval = setInterval(() => {
+        // if both players are ready, start the countdown / or cancel it
+        if (
+          gameRooms[roomNumber].playersReady.includes(
+            gameRooms[roomNumber].players.hostUid
+          ) &&
+          gameRooms[roomNumber].playersReady.includes(
+            gameRooms[roomNumber].players.challengerUid
+          )
+        ) {
+          gameRooms[roomNumber].gameStatus = "countingDown";
+          console.log(gameRooms[roomNumber].countdown);
+          gameRoomCountdownIntervals[roomNumber] = setInterval(() => {
+            io.to(`game-${currentGameRoom.roomNumber}`).emit(
+              "currentGameRoomCountdown",
+              gameRooms[roomNumber].countdown
+            );
+            if (gameRooms[roomNumber].countdown <= 0) {
+              gameRooms[roomNumber].gameStatus = "inProgress";
+              // send out the room data
+              io.to(`game-${currentGameRoom.roomNumber}`).emit(
+                "currentGameRoomUpdate",
+                gameRooms[roomNumber]
+              );
+              gameRoomTicks[roomNumber] = startGame(io, gameRooms[roomNumber]);
+            }
+            gameRooms[roomNumber].countdown--;
+            if (gameRooms[roomNumber].gameStatus != "countingDown") {
+              clearInterval(gameRoomCountdownIntervals[roomNumber]);
+              gameRooms[roomNumber].countdown = defaultCountdownNumber;
               io.to(`game-${currentGameRoom.roomNumber}`).emit(
                 "currentGameRoomCountdown",
                 gameRooms[roomNumber].countdown
               );
-              if (gameRooms[roomNumber].countdown <= 0) {
-                gameRooms[roomNumber].gameStatus = "inProgress";
-                // send out the room data
-                io.to(`game-${currentGameRoom.roomNumber}`).emit(
-                  "currentGameRoomUpdate",
-                  gameRooms[roomNumber]
-                );
-                gameRoomTicks[gameRooms[roomNumber].roomNumber] = startGame(
-                  io,
-                  gameRooms[roomNumber]
-                );
-              }
-              gameRooms[roomNumber].countdown--;
-              if (gameRooms[roomNumber].gameStatus != "countingDown") {
-                clearInterval(countDownInterval);
-                gameRooms[roomNumber].countdown = 1;
-                io.to(`game-${currentGameRoom.roomNumber}`).emit(
-                  "currentGameRoomCountdown",
-                  gameRooms[roomNumber].countdown
-                );
-              }
-            }, 1000);
-          } else {
-            gameRooms[roomNumber].gameStatus = "inLobby";
-          }
-          // send out the room data
-          io.to(`game-${currentGameRoom.roomNumber}`).emit(
-            "currentGameRoomUpdate",
-            gameRooms[roomNumber]
-          );
+            }
+            console.log(gameRooms[roomNumber].countdown);
+          }, 1000);
+        } else {
+          gameRooms[roomNumber].gameStatus = "inLobby";
         }
+        // send out the room data
+        io.to(`game-${currentGameRoom.roomNumber}`).emit(
+          "currentGameRoomUpdate",
+          gameRooms[roomNumber]
+        );
       }
-    });
+    }
   });
 
   // client requests update of players array
-  socket.on("requestUpdateOfPlayersArray", () => {
-    let playersArrayForClient = [];
-    playersArray.forEach(playerInArray => {
+  // we will send them everything about the players, except for their socket ids
+  socket.on("requestupdateOfPlayersObject", () => {
+    let playersObjectForClient = {};
+    for (let connectedPlayer in connectedPlayers) {
       let playerForClient = {};
-      Object.keys(playerInArray).forEach(key => {
-        if (key != "socketId") playerForClient[key] = playerInArray[key];
+      Object.keys(connectedPlayers[connectedPlayer]).forEach(key => {
+        if (key != "socketId")
+          playerForClient[key] = connectedPlayers[connectedPlayer][key];
       });
-      playersArrayForClient.push(playerForClient);
-    });
-    socket.emit("updateOfPlayersArray", playersArrayForClient);
+      playersObjectForClient[
+        connectedPlayers[connectedPlayer].uid
+      ] = playerForClient;
+    }
+
+    socket.emit("updateOfPlayersObject", playersObjectForClient);
   });
 
   socket.on("clientLeavesGame", () => {
-    let clientPlayerLeavingUid;
-    playersArray.forEach(playerInArray => {
-      if (socket.id == playerInArray.socketId) {
-        clientPlayerLeavingUid = playerInArray.uid;
-      }
-    });
+    const playerLeavingRoomUid = connectedPlayers[socket.id].uid;
+
     gameRooms = removePlayerFromGameRoom(
       io,
       socket,
-      clientPlayerLeavingUid,
+      playerLeavingRoomUid,
       gameRooms,
-      playersArray,
-      gameRoomTicks
+      connectedPlayers,
+      gameRoomTicks,
+      gameRoomCountdownIntervals,
+      defaultCountdownNumber
     );
   });
 
   socket.on("disconnect", () => {
-    let clientPlayerLeavingUid;
-    let indexOfPlayerLeaving;
-    playersArray.forEach((playerInArray, i) => {
-      if (socket.id == playerInArray.socketId) {
-        clientPlayerLeavingUid = playerInArray.uid;
-        indexOfPlayerLeaving = i;
-      }
-    });
+    const playerLeavingRoomUid = connectedPlayers[socket.id].uid;
     removePlayerFromGameRoom(
       io,
       socket,
-      clientPlayerLeavingUid,
+      playerLeavingRoomUid,
       gameRooms,
-      playersArray,
-      gameRoomTicks
+      connectedPlayers,
+      gameRoomTicks,
+      gameRoomCountdownIntervals,
+      defaultCountdownNumber
     );
-    playersArray.splice(indexOfPlayerLeaving, 1);
+    delete connectedPlayers[socket.id];
   });
 
   // game

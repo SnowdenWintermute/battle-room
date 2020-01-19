@@ -1,9 +1,14 @@
 function updateClientCurrentGameRoom(currentGameRoom) {
   let currentGameUi = document.getElementById("current-game");
+  let lobby = document.getElementById("lobby");
+  let htmlCanvas = document.getElementById("the-canvas");
+  console.log(menuOpen);
   if (!menuOpen) {
-    let lobby = document.getElementById("lobby");
     lobby.setAttribute("style", "display:none");
+    htmlCanvas.setAttribute("style", "display: block");
   } else {
+    htmlCanvas.setAttribute("style", "display: none");
+    lobby.setAttribute("style", "display:block");
     // if not in game, give new game button
     if (currentGameUi) {
       if (!clientPlayer.isInGame) {
@@ -29,10 +34,10 @@ function updateClientCurrentGameRoom(currentGameRoom) {
           currentRoomHostName = currentGameRoom.gameName;
           currentRoomChallengerName = clientPlayer.name;
         } else if (currentGameRoom.players.challengerUid) {
-          clientPlayersArray.forEach(playerInArray => {
-            if (playerInArray.uid == currentGameRoom.players.challengerUid)
-              currentRoomChallengerName = playerInArray.name;
-          });
+          console.log(currentGameRoom.players.challengerUid);
+          console.log(clientPlayersObject);
+          currentRoomChallengerName =
+            clientPlayersObject[currentGameRoom.players.challengerUid].name;
         }
         if (!currentRoomChallengerName) currentRoomChallengerName = "";
 

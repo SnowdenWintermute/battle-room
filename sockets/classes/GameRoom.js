@@ -1,5 +1,5 @@
 class GameRoom {
-  constructor(roomNumber, hostUid, gameName) {
+  constructor(roomNumber, hostUid, gameName, defaultCountdownNumber) {
     this.roomNumber = roomNumber;
     this.gameName = gameName;
     this.players = {
@@ -8,7 +8,7 @@ class GameRoom {
     };
     this.spectators = [];
     this.gameStatus = "inLobby"; // inLobby, countingDown, inProgress, gameOverScreen
-    this.countdown = 1;
+    this.countdown = defaultCountdownNumber;
     this.orbs = {
       hostOrbs: [],
       challengerOrbs: []

@@ -15,7 +15,7 @@ let mouseData = {
   mouseOnScreen: null
 };
 let clientPlayer = {};
-let clientPlayersArray = [];
+let clientPlayersObject = {};
 let clientGameRooms = {};
 let currentClientGameRoom = {};
 let selectedOrbs = [];
