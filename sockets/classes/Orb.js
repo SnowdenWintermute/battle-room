@@ -1,5 +1,5 @@
 class Orb {
-  constructor(xPos, yPos, radius, owner, num) {
+  constructor(xPos, yPos, radius, owner, num, color) {
     this.xPos = xPos;
     this.yPos = yPos;
     this.heading = {
@@ -11,6 +11,7 @@ class Orb {
       y: 0
     };
     this.radius = radius;
+    this.color = color;
     this.owner = owner;
     this.num = num;
     this.isGhost = false;

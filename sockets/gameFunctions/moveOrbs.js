@@ -7,7 +7,7 @@ function moveOrbs(gameRoom) {
       const velX = (tx / dist) * gameRoom.speed;
       const velY = (ty / dist) * gameRoom.speed;
 
-      if (dist > 1) {
+      if (dist > orb.radius) {
         orb.xPos += velX;
         orb.yPos += velY;
       }

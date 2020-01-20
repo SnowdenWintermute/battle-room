@@ -6,22 +6,26 @@ function selectOrbs(startX, startY, currX, currY) {
   else playerOrbsToSelect = "challengerOrbs";
   currentClientGameRoom.orbs[playerOrbsToSelect].forEach((orb, i) => {
     if (
-      ((orb.xPos >= startX &&
-        orb.xPos <= currX &&
-        orb.yPos >= startY &&
-        orb.yPos <= currY) ||
-        (orb.xPos <= startX &&
-          orb.xPos >= currX &&
-          orb.yPos <= startY &&
-          orb.yPos >= currY) ||
-        (orb.xPos <= startX &&
-          orb.xPos >= currX &&
-          orb.yPos >= startY &&
-          orb.yPos <= currY) ||
-        (orb.xPos >= startX &&
-          orb.xPos <= currX &&
-          orb.yPos <= startY &&
-          orb.yPos >= currY)) &&
+      ((orb.xPos + orb.radius >= startX &&
+        orb.xPos - orb.radius <= currX &&
+        orb.yPos + orb.radius >= startY &&
+        orb.yPos - orb.radius <= currY) ||
+        (orb.xPos - orb.radius <= startX &&
+          orb.xPos + orb.radius >= currX &&
+          orb.yPos - orb.radius <= startY &&
+          orb.yPos + orb.radius >= currY) ||
+        (orb.xPos - orb.radius <= startX &&
+          orb.xPos + orb.radius >= currX &&
+          orb.yPos + orb.radius >= startY &&
+          orb.yPos - orb.radius <= currY) ||
+        (orb.xPos + orb.radius >= startX &&
+          orb.xPos - orb.radius <= currX &&
+          orb.yPos - orb.radius <= startY &&
+          orb.yPos + orb.radius >= currY) ||
+        (currX + orb.radius >= orb.xPos &&
+          currX - orb.radius <= orb.xPos &&
+          currY + orb.radius >= orb.yPos &&
+          currY - orb.radius <= orb.yPos)) &&
       orb.owner === clientPlayer.uid
     ) {
       orb.isSelected = true;
