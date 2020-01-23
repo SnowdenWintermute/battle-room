@@ -16,5 +16,4 @@ function orbMoveCommand(headingX, headingY) {
     gameRoomNumber: currentClientGameRoom.roomNumber
   };
   socket.emit("clientSubmitsMoveCommand", dataForServer);
-  console.log("added orb heading");
 }

@@ -1,5 +1,10 @@
 const GameRoom = require("../classes/GameRoom");
 
+const settings = {
+  width: 450,
+  height: 700
+};
+
 function clientHostsNewGameRoom(
   connectedPlayers,
   serverSidePlayer,
@@ -15,7 +20,9 @@ function clientHostsNewGameRoom(
       nextRoomNumber,
       connectedPlayers[socket.id].uid,
       connectedPlayers[socket.id].name,
-      defaultCountdownNumber
+      defaultCountdownNumber,
+      settings.width,
+      settings.height
     );
     gameRooms[nextRoomNumber] = newGameRoom;
     // join their socket to the new game room

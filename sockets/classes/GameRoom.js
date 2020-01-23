@@ -1,5 +1,12 @@
 class GameRoom {
-  constructor(roomNumber, hostUid, gameName, defaultCountdownNumber) {
+  constructor(
+    roomNumber,
+    hostUid,
+    gameName,
+    defaultCountdownNumber,
+    width,
+    height
+  ) {
     this.roomNumber = roomNumber;
     this.gameName = gameName;
     this.players = {
@@ -9,6 +16,8 @@ class GameRoom {
     this.spectators = [];
     this.gameStatus = "inLobby"; // inLobby, countingDown, inProgress, gameOverScreen
     this.countdown = defaultCountdownNumber;
+    this.width = width;
+    this.height = height;
     this.speed = 4;
     this.orbRadius = 8;
     this.orbs = {
@@ -34,10 +43,16 @@ class GameRoom {
     };
     this.endzones = {
       host: {
-        // xStart,yStart,width,height
+        x: 0,
+        y: 0,
+        width: this.width,
+        height: 60
       },
       challenger: {
-        // xStart,yStart,width,height
+        x: 0,
+        y: this.height - 60,
+        width: this.width,
+        height: 60
       }
     };
   }

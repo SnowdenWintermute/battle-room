@@ -116,6 +116,7 @@ io.sockets.on("connect", socket => {
 
   // game
   socket.on("clientSendsOrbSelections", data => {
+    // TODO: check for correct ownership
     // roomNumber, ownerOfOrbs, orbsToBeUpdated
     const { roomNumber, ownerOfOrbs, orbsToBeUpdated } = data;
     if (gameRooms[roomNumber]) {
@@ -144,6 +145,5 @@ io.sockets.on("connect", socket => {
       whichPlayerOrbs = "challengerOrbs";
 
     gameRooms[gameRoomNumber].orbs[whichPlayerOrbs] = orbsClientWantsToMove;
-    console.log(gameRooms[gameRoomNumber].orbs[whichPlayerOrbs][0]);
   });
 });

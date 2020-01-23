@@ -1,6 +1,7 @@
 const Orb = require("../classes/Orb");
 
 const moveOrbs = require("./moveOrbs");
+const handleOrbCollisions = require("./handleOrbCollisions");
 
 function startGame(io, gameRoom) {
   console.log(gameRoom.roomNumber + "started");
@@ -10,26 +11,27 @@ function startGame(io, gameRoom) {
     gameRoom.orbs.hostOrbs.push(
       new Orb(
         startingX,
-        50,
+        100,
         gameRoom.orbRadius,
         gameRoom.players.hostUid,
         i + 1,
-        "rgb(0, 153, 0)"
+        "0, 153, 0"
       )
     );
     gameRoom.orbs.challengerOrbs.push(
       new Orb(
         startingX,
-        650,
+        600,
         gameRoom.orbRadius,
         gameRoom.players.challengerUid,
         i + 1,
-        "rgb(89, 0, 179)"
+        "89, 0, 179"
       )
     );
   }
   let serverGameTick = setInterval(() => {
     moveOrbs(gameRoom);
+    handleOrbCollisions(gameRoom);
     io.to(`game-${gameRoom.roomNumber}`).emit("tickFromServer", gameRoom);
   }, 33);
   return serverGameTick;
