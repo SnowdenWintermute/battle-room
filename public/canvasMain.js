@@ -1,33 +1,6 @@
 function draw() {
   // clear it out
   context.clearRect(0, 0, canvas.width, canvas.height);
-  // draw all orbs
-  currentClientGameRoom.orbs.hostOrbs.forEach(orb => {
-    context.beginPath();
-    context.fillStyle = orb.isGhosting
-      ? `rgba(${orb.color},.3)`
-      : `rgb(${orb.color})`;
-    context.arc(orb.xPos, orb.yPos, orb.radius, 0, Math.PI * 2);
-    context.fill();
-    context.lineWidth = 3;
-    if (orb.isSelected) {
-      context.strokeStyle = "rgb(30,200,30)";
-      context.stroke();
-    }
-  });
-  currentClientGameRoom.orbs.challengerOrbs.forEach(orb => {
-    context.beginPath();
-    context.fillStyle = orb.isGhosting
-      ? `rgba(${orb.color},.3)`
-      : `rgb(${orb.color})`;
-    context.arc(orb.xPos, orb.yPos, orb.radius, 0, Math.PI * 2);
-    context.fill();
-    context.lineWidth = 3;
-    if (orb.isSelected) {
-      context.strokeStyle = "rgb(30,30,200)";
-      context.stroke();
-    }
-  });
 
   // endzones
   let { x, y, width, height } = currentClientGameRoom.endzones.host;
@@ -41,6 +14,11 @@ function draw() {
   context.beginPath();
   context.fillStyle = "rgb(50,70,50)";
   context.fillRect(x, y, width, height);
+
+  // score
+  drawScore();
+
+  drawOrbs();
 
   // selection box
   if (mouseData.leftCurrentlyPressed) {
