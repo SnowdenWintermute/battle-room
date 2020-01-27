@@ -11,7 +11,8 @@ function startGame(
   connectedPlayers,
   socket,
   gameRoomTicks,
-  gameEndingTicks
+  gameEndingTicks,
+  gameUpdatePackets
 ) {
   console.log(gameRoom.roomNumber + "started");
   io.to(`game-${gameRoom.roomNumber}`).emit("serverInitsGame");
@@ -50,7 +51,36 @@ function startGame(
       gameRoomTicks,
       gameEndingTicks
     );
-    io.to(`game-${gameRoom.roomNumber}`).emit("tickFromServer", gameRoom);
+    const { roomNumber } = gameRoom;
+    if (!gameUpdatePackets[roomNumber]) {
+      // make initial packets object for this room
+      console.log("initial packet made for room " + roomNumber);
+      gameUpdatePackets[roomNumber] = {
+        prevGameRoomState: {},
+        currPacket: {}
+      };
+      // set the previous and current packet to the gameRoom object
+      Object.keys(gameRoom).forEach(key => {
+        gameUpdatePackets[roomNumber].prevGameRoomState[key] = gameRoom[key];
+        gameUpdatePackets[roomNumber].currPacket[key] = gameRoom[key];
+      });
+      console.log(gameUpdatePackets[roomNumber].prevGameRoomState);
+    } else {
+      // check gameRoom object against prevPacket and only give currPacket what is different
+      gameUpdatePackets[roomNumber].currPacket = {};
+      Object.keys(gameRoom).forEach(key => {
+        if (
+          gameRoom[key] !== gameUpdatePackets[roomNumber].prevGameRoomState[key]
+        ) {
+          gameUpdatePackets[roomNumber].currPacket[key] = gameRoom[key];
+        }
+        gameUpdatePackets[roomNumber].prevGameRoomState[key] = gameRoom[key];
+      });
+    }
+    io.to(`game-${roomNumber}`).emit(
+      "tickFromServer",
+      gameUpdatePackets[roomNumber].currPacket
+    );
   }, 33);
   return serverGameTick;
 }

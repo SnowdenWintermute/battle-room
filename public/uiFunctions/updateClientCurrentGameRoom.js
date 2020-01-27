@@ -5,7 +5,7 @@ function updateClientCurrentGameRoom(currentGameRoom) {
   if (!menuOpen) {
     lobby.setAttribute("style", "display:none");
     htmlCanvas.setAttribute("style", "display: block");
-    console.log("menu not open");
+    console.log("menu closed");
   } else {
     htmlCanvas.setAttribute("style", "display: none");
     lobby.setAttribute("style", "display:block");
@@ -28,7 +28,6 @@ function updateClientCurrentGameRoom(currentGameRoom) {
         // make the displayed names and room number
         let currentRoomHostName, currentRoomChallengerName;
         // determine if this client is host or challenger (later spectator as well)
-        console.log(clientPlayer);
         if (currentGameRoom.players.hostUid == clientPlayer.uid)
           currentRoomHostName = clientPlayer.name;
         if (currentGameRoom.players.challengerUid == clientPlayer.uid) {

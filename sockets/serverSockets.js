@@ -12,6 +12,7 @@ const randomName = require("./utils/randomName");
 const makePlayerForClient = require("./utils/makePlayerForClient");
 
 let gameRooms = {};
+let gameUpdatePackets = {};
 let gameRoomCountdownIntervals = {};
 let gameRoomTicks = {};
 let gameEndingTicks = {};
@@ -67,7 +68,8 @@ io.sockets.on("connect", socket => {
       io,
       defaultCountdownNumber,
       gameRoomTicks,
-      gameEndingTicks
+      gameEndingTicks,
+      gameUpdatePackets
     );
   });
 

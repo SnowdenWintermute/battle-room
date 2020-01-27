@@ -76,7 +76,9 @@ socket.on("showEndScreen", gameRoom => {
   clearInterval(drawInterval);
 });
 
-socket.on("tickFromServer", gameRoom => {
-  currentClientGameRoom = gameRoom;
-  // updateGameField()
+socket.on("tickFromServer", packet => {
+  console.log(packet);
+  Object.keys(packet).forEach(key => {
+    currentClientGameRoom[key] = packet[key];
+  });
 });

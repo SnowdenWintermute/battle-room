@@ -9,7 +9,8 @@ function clientPlayerClicksReady(
   io,
   defaultCountdownNumber,
   gameRoomTicks,
-  gameEndingTicks
+  gameEndingTicks,
+  gameUpdatePackets
 ) {
   const roomNumber = currentGameRoom.roomNumber;
   // check if this room still exists or it will crash server
@@ -65,7 +66,8 @@ function clientPlayerClicksReady(
               connectedPlayers,
               socket,
               gameRoomTicks,
-              gameEndingTicks
+              gameEndingTicks,
+              gameUpdatePackets
             );
           }
           gameRooms[roomNumber].countdown--;
