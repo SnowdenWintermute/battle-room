@@ -1,3 +1,5 @@
+const _ = require("lodash");
+
 const Orb = require("../classes/Orb");
 
 const moveOrbs = require("./moveOrbs");
@@ -14,8 +16,9 @@ function startGame(
   gameEndingTicks,
   gameUpdatePackets
 ) {
-  console.log(gameRoom.roomNumber + "started");
-  io.to(`game-${gameRoom.roomNumber}`).emit("serverInitsGame");
+  const { roomNumber } = gameRoom;
+  console.log(roomNumber + "started");
+  io.to(`game-${roomNumber}`).emit("serverInitsGame");
   for (let i = 0; i < 5; i++) {
     let startingX = (i + 1) * 50 + 75;
     gameRoom.orbs.hostOrbs.push(
@@ -39,6 +42,9 @@ function startGame(
       )
     );
   }
+  gameUpdatePackets[roomNumber] = {};
+  gameUpdatePackets[roomNumber] = _.cloneDeep(gameRoom);
+  io.to(`game-${roomNumber}`).emit("tickFromServer", gameRoom);
   let serverGameTick = setInterval(() => {
     moveOrbs(gameRoom);
     handleOrbCollisions(gameRoom);
@@ -51,36 +57,22 @@ function startGame(
       gameRoomTicks,
       gameEndingTicks
     );
-    const { roomNumber } = gameRoom;
-    if (!gameUpdatePackets[roomNumber]) {
-      // make initial packets object for this room
-      console.log("initial packet made for room " + roomNumber);
-      gameUpdatePackets[roomNumber] = {
-        prevGameRoomState: {},
-        currPacket: {}
-      };
-      // set the previous and current packet to the gameRoom object
-      Object.keys(gameRoom).forEach(key => {
-        gameUpdatePackets[roomNumber].prevGameRoomState[key] = gameRoom[key];
-        gameUpdatePackets[roomNumber].currPacket[key] = gameRoom[key];
-      });
-      console.log(gameUpdatePackets[roomNumber].prevGameRoomState);
-    } else {
-      // check gameRoom object against prevPacket and only give currPacket what is different
-      gameUpdatePackets[roomNumber].currPacket = {};
-      Object.keys(gameRoom).forEach(key => {
+    let newPacket = {};
+    Object.keys(gameUpdatePackets[roomNumber]).forEach(key => {
+      if (!_.isEqual(gameUpdatePackets[roomNumber][key], gameRoom[key])) {
         if (
-          gameRoom[key] !== gameUpdatePackets[roomNumber].prevGameRoomState[key]
+          typeof gameRoom[key] === "object" ||
+          typeof gameRoom[key] === "array"
         ) {
-          gameUpdatePackets[roomNumber].currPacket[key] = gameRoom[key];
+          newPacket[key] = _.cloneDeep(gameRoom[key]);
+          gameUpdatePackets[roomNumber][key] = _.cloneDeep(gameRoom[key]);
+        } else {
+          newPacket[key] = gameRoom[key];
+          gameUpdatePackets[roomNumber][key] = gameRoom[key];
         }
-        gameUpdatePackets[roomNumber].prevGameRoomState[key] = gameRoom[key];
-      });
-    }
-    io.to(`game-${roomNumber}`).emit(
-      "tickFromServer",
-      gameUpdatePackets[roomNumber].currPacket
-    );
+      }
+    });
+    io.to(`game-${roomNumber}`).emit("tickFromServer", newPacket);
   }, 33);
   return serverGameTick;
 }

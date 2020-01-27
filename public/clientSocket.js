@@ -1,4 +1,4 @@
-let socket = io.connect("192.168.29.149:8080");
+let socket = io.connect("localhost:8080");
 
 function hostNewGame() {
   socket.emit("clientHostsNewGameRoom");
