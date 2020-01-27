@@ -1,4 +1,14 @@
-function handleScoringPoints(gameRoom) {
+const endGameCleanup = require("./endGameCleanup");
+
+function handleScoringPoints(
+  io,
+  gameRooms,
+  gameRoom,
+  connectedPlayers,
+  socket,
+  gameRoomTicks,
+  gameEndingTicks
+) {
   for (let orbSet in gameRoom.orbs) {
     gameRoom.orbs[orbSet].forEach(orb => {
       if (!orb.isGhosting) {
@@ -20,6 +30,32 @@ function handleScoringPoints(gameRoom) {
         }
       }
     });
+  }
+  if (
+    gameRoom.score.challenger >= gameRoom.score.neededToWin &&
+    gameRoom.score.host >= gameRoom.score.neededToWin
+  ) {
+    gameRoom.winner = "tie";
+  } else {
+    if (gameRoom.score.challenger >= gameRoom.score.neededToWin) {
+      gameRoom.winner = "challenger";
+    }
+    if (gameRoom.score.host >= gameRoom.score.neededToWin) {
+      gameRoom.winner = "host";
+    }
+  }
+  if (
+    gameRoom.score.challenger >= gameRoom.score.neededToWin ||
+    gameRoom.score.host >= gameRoom.score.neededToWin
+  ) {
+    endGameCleanup(
+      io,
+      gameRoom,
+      gameRooms,
+      gameRoomTicks,
+      gameEndingTicks,
+      connectedPlayers
+    );
   }
 }
 

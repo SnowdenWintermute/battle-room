@@ -8,7 +8,8 @@ function clientPlayerClicksReady(
   socket,
   io,
   defaultCountdownNumber,
-  gameRoomTicks
+  gameRoomTicks,
+  gameEndingTicks
 ) {
   const roomNumber = currentGameRoom.roomNumber;
   // check if this room still exists or it will crash server
@@ -57,11 +58,20 @@ function clientPlayerClicksReady(
               "currentGameRoomUpdate",
               gameRooms[roomNumber]
             );
-            gameRoomTicks[roomNumber] = startGame(io, gameRooms[roomNumber]);
+            gameRoomTicks[roomNumber] = startGame(
+              io,
+              gameRooms,
+              gameRooms[roomNumber],
+              connectedPlayers,
+              socket,
+              gameRoomTicks,
+              gameEndingTicks
+            );
           }
           gameRooms[roomNumber].countdown--;
           if (gameRooms[roomNumber].gameStatus != "countingDown") {
             clearInterval(gameRoomCountdownIntervals[roomNumber]);
+            delete gameRoomCountdownIntervals[roomNumber];
             gameRooms[roomNumber].countdown = defaultCountdownNumber;
             io.to(`game-${currentGameRoom.roomNumber}`).emit(
               "currentGameRoomCountdown",

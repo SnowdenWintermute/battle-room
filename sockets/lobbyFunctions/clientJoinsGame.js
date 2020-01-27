@@ -1,3 +1,5 @@
+const makePlayersObjectForClient = require("../utils/makePlayersObjectForClient");
+
 function clientJoinsGame(
   connectedPlayers,
   socket,
@@ -18,17 +20,7 @@ function clientJoinsGame(
       socket.emit("updatePlayerInGameStatus", true);
       io.sockets.emit("gameListUpdate", gameRooms);
       // create a playersObject for client with Uid instead of socket.id
-      let playersObjectForClient = {};
-      for (let connectedPlayer in connectedPlayers) {
-        let playerForClient = {};
-        Object.keys(connectedPlayers[connectedPlayer]).forEach(key => {
-          if (key != "socketId")
-            playerForClient[key] = connectedPlayers[connectedPlayer][key];
-        });
-        playersObjectForClient[
-          connectedPlayers[connectedPlayer].uid
-        ] = playerForClient;
-      }
+      let playersObjectForClient = makePlayersObjectForClient(connectedPlayers);
       io.sockets.emit("updateOfPlayersObject", playersObjectForClient);
 
       io.to(`game-${gameRooms[roomNumberToJoin].roomNumber}`).emit(

@@ -16,6 +16,7 @@ class GameRoom {
     this.spectators = [];
     this.gameStatus = "inLobby"; // inLobby, countingDown, inProgress, gameOverScreen
     this.countdown = defaultCountdownNumber;
+    this.endingStateCountdown = 2;
     this.width = width;
     this.height = height;
     this.speed = 4;
@@ -27,8 +28,10 @@ class GameRoom {
     (this.playersReady = []), (this.messages = []); // {author: uid, msgText: String}
     this.score = {
       host: 0,
-      challenger: 0
+      challenger: 0,
+      neededToWin: 5
     };
+    this.winner = null;
     this.dashes = {
       host: {
         dashes: 3,

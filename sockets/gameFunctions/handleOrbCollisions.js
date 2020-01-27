@@ -16,7 +16,6 @@ function handleOrbCollisions(gameRoom) {
       });
     }
     if (orbsCollidedNums[0]) {
-      console.log(orbsCollidedNums);
       gameRoom.orbs["challengerOrbs"][
         orbsCollidedNums[0] - 1
       ].isGhosting = true;

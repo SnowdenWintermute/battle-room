@@ -15,10 +15,9 @@ function draw() {
   context.fillStyle = "rgb(50,70,50)";
   context.fillRect(x, y, width, height);
 
-  // score
   drawScore();
-
   drawOrbs();
+  gameOverText();
 
   // selection box
   if (mouseData.leftCurrentlyPressed) {

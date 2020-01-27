@@ -4,7 +4,15 @@ const moveOrbs = require("./moveOrbs");
 const handleOrbCollisions = require("./handleOrbCollisions");
 const handleScoringPoints = require("./handleScoringPoints");
 
-function startGame(io, gameRoom) {
+function startGame(
+  io,
+  gameRooms,
+  gameRoom,
+  connectedPlayers,
+  socket,
+  gameRoomTicks,
+  gameEndingTicks
+) {
   console.log(gameRoom.roomNumber + "started");
   io.to(`game-${gameRoom.roomNumber}`).emit("serverInitsGame");
   for (let i = 0; i < 5; i++) {
@@ -33,7 +41,15 @@ function startGame(io, gameRoom) {
   let serverGameTick = setInterval(() => {
     moveOrbs(gameRoom);
     handleOrbCollisions(gameRoom);
-    handleScoringPoints(gameRoom);
+    handleScoringPoints(
+      io,
+      gameRooms,
+      gameRoom,
+      connectedPlayers,
+      socket,
+      gameRoomTicks,
+      gameEndingTicks
+    );
     io.to(`game-${gameRoom.roomNumber}`).emit("tickFromServer", gameRoom);
   }, 33);
   return serverGameTick;

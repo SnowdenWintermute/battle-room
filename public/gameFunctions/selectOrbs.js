@@ -48,7 +48,6 @@ function selectOrbs(startX, startY, currX, currY) {
       orb.owner === clientPlayer.uid
     ) {
       orb.isSelected = true;
-      console.log("selected " + orb.num);
     } else {
       orb.isSelected = false;
     }

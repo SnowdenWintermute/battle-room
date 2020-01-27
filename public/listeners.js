@@ -23,6 +23,9 @@ canvas.addEventListener("mouseup", e => {
 canvas.addEventListener("contextmenu", e => {
   e.preventDefault();
 });
+window.addEventListener("contextmenu", e => {
+  e.preventDefault();
+});
 
 canvas.addEventListener("mousemove", e => {
   mouseData.xPos = e.offsetX;

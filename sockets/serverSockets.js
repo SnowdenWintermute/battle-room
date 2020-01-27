@@ -9,10 +9,12 @@ const clientPlayerClicksReady = require("./lobbyFunctions/clientPlayerClicksRead
 
 const removePlayerFromGameRoom = require("./utils/removePlayerFromGameRoom");
 const randomName = require("./utils/randomName");
+const makePlayerForClient = require("./utils/makePlayerForClient");
 
 let gameRooms = {};
 let gameRoomCountdownIntervals = {};
 let gameRoomTicks = {};
+let gameEndingTicks = {};
 let nextRoomNumber = 1;
 let connectedPlayers = {};
 
@@ -23,7 +25,8 @@ io.sockets.on("connect", socket => {
   console.log(socket.id + " connected to the main namespace");
   let serverSidePlayer = new Player(socket.id, randomName());
   connectedPlayers[socket.id] = serverSidePlayer;
-  socket.emit("serverSendsPlayerData", serverSidePlayer);
+  const playerForClient = makePlayerForClient(serverSidePlayer);
+  socket.emit("serverSendsPlayerData", playerForClient);
   // give client the list of games that may already exist
   io.sockets.emit("gameListUpdate", gameRooms);
   socket.emit("currentGameRoomUpdate", {});
@@ -63,7 +66,8 @@ io.sockets.on("connect", socket => {
       socket,
       io,
       defaultCountdownNumber,
-      gameRoomTicks
+      gameRoomTicks,
+      gameEndingTicks
     );
   });
 

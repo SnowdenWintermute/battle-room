@@ -1,4 +1,4 @@
-let socket = io.connect("http://localhost:8080");
+let socket = io.connect("192.168.29.149:8080");
 
 function hostNewGame() {
   socket.emit("clientHostsNewGameRoom");
@@ -61,7 +61,19 @@ socket.on("serverInitsGame", () => {
   drawInterval = setInterval(() => {
     requestAnimationFrame(draw);
   }, 33);
-  document.getElementById("the-canvas").setAttribute("style", "display:block");
+});
+
+socket.on("gameEndingCountdown", countdownNum => {
+  currentClientGameRoom.endingStateCountdown = countdownNum;
+});
+
+socket.on("showEndScreen", gameRoom => {
+  currentClientGameRoom = gameRoom;
+  console.log("game ended ");
+  let htmlCanvas = document.getElementById("the-canvas");
+  htmlCanvas.setAttribute("style", "display: none");
+  clearInterval(clientTick);
+  clearInterval(drawInterval);
 });
 
 socket.on("tickFromServer", gameRoom => {
