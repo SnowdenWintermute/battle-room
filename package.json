@@ -11,7 +11,7 @@
   "dependencies": {
     "express": "^4.17.1",
     "helmet": "^3.21.2",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.21",
     "socketio": "^1.0.0",
     "uuid": "^3.3.3"
   }
